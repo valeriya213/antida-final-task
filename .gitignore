@@ -1,0 +1,10 @@
+__pycache__/
+*.pyc
+*.pyd
+*.pyo
+
+# Ignore dynaconf secret files
+.secrets.*
+
+*.sqlite
+.vscode/
