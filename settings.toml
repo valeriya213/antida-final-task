@@ -1,1 +1,3 @@
 database_url = "sqlite:///database.sqlite"
+
+jwt_access_livetime = 3600

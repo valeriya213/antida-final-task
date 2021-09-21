@@ -1,6 +1,8 @@
 
 from dynaconf import Dynaconf
 
+Settings = Dynaconf
+
 # `envvar_prefix` = export envvars with `export DYNACONF_FOO=bar`.
 # `settings_files` = Load this files in the order.
 settings = Dynaconf(
@@ -9,5 +11,5 @@ settings = Dynaconf(
 )
 
 
-def get_settings() -> Dynaconf:
+def get_settings() -> Settings:
     return settings
