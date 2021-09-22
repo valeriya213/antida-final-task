@@ -17,6 +17,7 @@ def enable_foreign_keys(dbapi_connection, connection_record):
 engine = create_engine(
     settings.database_url,
     future=True,
+    echo=True,
     connect_args={'check_same_thread': False}
 )
 
@@ -31,3 +32,4 @@ def get_session() -> Session:
 
 from .accounts.models import Account
 from .shops.models import Shop
+from .categories.models import Category

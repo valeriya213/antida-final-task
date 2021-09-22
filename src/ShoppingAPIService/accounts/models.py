@@ -14,3 +14,4 @@ class Account(Base):
     password = Column(String, nullable=False)
 
     shop = relationship('Shop', back_populates='account')
+    category = relationship('Category', back_populates='account')
