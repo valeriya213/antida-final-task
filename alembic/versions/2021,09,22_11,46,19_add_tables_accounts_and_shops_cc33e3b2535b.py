@@ -1,8 +1,8 @@
 """add tables accounts and shops
 
-Revision ID: 507c6ac40cdd
+Revision ID: cc33e3b2535b
 Revises: 
-Create Date: 2021-09-21 16:14:30.319912
+Create Date: 2021-09-22 11:46:19.365924
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '507c6ac40cdd'
+revision = 'cc33e3b2535b'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -31,7 +31,8 @@ def upgrade():
     sa.Column('name', sa.String(), nullable=False),
     sa.Column('account_id', sa.Integer(), nullable=False),
     sa.ForeignKeyConstraint(['account_id'], ['accounts.id'], ondelete='CASCADE'),
-    sa.PrimaryKeyConstraint('id')
+    sa.PrimaryKeyConstraint('id'),
+    sa.UniqueConstraint('name', 'account_id', name='unique_shop_name_for_account')
     )
     # ### end Alembic commands ###
 

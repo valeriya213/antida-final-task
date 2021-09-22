@@ -1,11 +1,11 @@
 from pydantic import BaseModel
 
 
-class Shop(BaseModel):
+class ShopName(BaseModel):
     name: str
 
 
-class ShopResponse(BaseModel):
+class Shop(BaseModel):
     id: int
     name: str
 

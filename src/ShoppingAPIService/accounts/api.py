@@ -5,7 +5,7 @@ from fastapi import HTTPException
 from fastapi import status
 from fastapi.security import OAuth2PasswordRequestForm
 
-from ..exseptions import EntiyDoesNotExistError
+from ..exseptions import EntityConflictError, EntiyDoesNotExistError
 from .service import AccountService
 from .schemas import AccountSingIn, AccountSingUp, Token
 
@@ -21,7 +21,10 @@ def create_account(
     account_create: AccountSingUp,
     account_service: AccountService = Depends(),
 ):
-    account = account_service.create_account(account_create)
+    try:
+        account = account_service.create_account(account_create)
+    except EntityConflictError:
+        raise HTTPException(status.HTTP_409_CONFLICT)
     return account_service.create_token_for_account(account)
 
 
