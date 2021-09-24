@@ -33,3 +33,4 @@ def get_session() -> Session:
 from .accounts.models import Account
 from .shops.models import Shop
 from .categories.models import Category
+from .operations.models import Operation

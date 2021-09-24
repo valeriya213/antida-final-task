@@ -16,3 +16,8 @@ class EntityConflictError(ClientError):
 
 class EntiyDoesNotExistError(ClientError):
     pass
+
+
+class EntiyUnprocessableError(ClientError):
+    pass
+
