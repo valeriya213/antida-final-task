@@ -20,4 +20,3 @@ class EntiyDoesNotExistError(ClientError):
 
 class EntiyUnprocessableError(ClientError):
     pass
-

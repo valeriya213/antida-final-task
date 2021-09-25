@@ -1,9 +1,8 @@
 from datetime import date
-from typing import List, Optional
+from typing import List
 from fastapi import APIRouter
 from fastapi import Depends
 from fastapi import FastAPI
-from fastapi import Query
 from fastapi import HTTPException
 from fastapi import status
 
@@ -12,6 +11,7 @@ from ..accounts.auth import get_current_user
 from ..exseptions import EntiyUnprocessableError
 from .schemas import OperationRequest, Operation
 from .service import OperationsServices
+from .queryparams import QueryParams, get_query_params
 
 router = APIRouter(prefix='/operations')
 
@@ -44,19 +44,13 @@ def add_operation(
 
 @router.get('', response_model=List[Operation])
 def get_operations_for_period(
-    date_from: Optional[str] = Query(None),
-    date_to: Optional[str] = Query(None),
-    shops: Optional[List[int]] = Query(None),
-    categories: Optional[List[int]] = Query(None),
+    query_params: QueryParams = Depends(get_query_params),
     current_account: Account = Depends(get_current_user),
     operation_services: OperationsServices = Depends(),
 ):
     operations = operation_services.get_operations(
         current_account,
-        date_from=date_from,
-        date_to=date_to,
-        shops=shops,
-        categories=categories,
+        query_params,
     )
     return [
         Operation(
@@ -75,17 +69,8 @@ def get_operations_for_period(
 
 @router.get('/report')
 def get_operations_report(
-    date_from: Optional[str] = Query(None),
-    date_to: Optional[str] = Query(None),
-    shops: Optional[List[int]] = Query(None),
-    categories: Optional[List[int]] = Query(None),
+    query_params: QueryParams = Depends(get_query_params),
     current_account: Account = Depends(get_current_user),
     operation_services: OperationsServices = Depends(),
 ):
-    return operation_services.get_report(
-        current_account,
-        date_from=date_from,
-        date_to=date_to,
-        shops=shops,
-        categories=categories,
-    )
+    return operation_services.get_report(current_account, query_params)

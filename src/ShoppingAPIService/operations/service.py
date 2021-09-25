@@ -1,21 +1,17 @@
 from datetime import date
 import json
-from typing import List, Optional
+from typing import List
 from fastapi import Depends
-from sqlalchemy import select
-from sqlalchemy.sql.expression import join
-
-from ShoppingAPIService import operations
 
 from ..config import Settings, get_settings
 from ..database import Session, get_session
 from ..accounts.models import Account
 from ..shops.models import Shop
-from ..categories.models import Category
 from ..exseptions import EntiyUnprocessableError
 from .models import Operation
 from .schemas import OperationRequest
 from .report import OperationsReport, OperationsJSONEncoder
+from .queryparams import QueryParams
 
 
 class OperationsServices():
@@ -57,64 +53,63 @@ class OperationsServices():
     def get_operations(
         self,
         current_user: Account,
-        *,
-        date_from: Optional[str],
-        date_to: Optional[str],
-        shops: Optional[List[int]],
-        categories: Optional[List[int]],
+        quary_params: QueryParams,
     ) -> List[Operation]:
-        operations_query = self.session.query(Operation)\
+        o_query = self.session.query(Operation)\
                                         .join(Operation.category)\
                                         .join(Operation.shop)\
                                         .join(Shop.account)\
                                         .filter(Account.id == current_user.id)
-        if date_from:
-            operations_query = operations_query\
-                               .filter(Operation.date >= date.fromisoformat(date_from))
-        if date_to:
-            operations_query = operations_query\
-                               .filter(Operation.date <= date.fromisoformat(date_to))
-        if shops:
-            operations_query = operations_query.filter(Operation.shop_id.in_(shops))
-        if categories:
-            operations_query = operations_query.filter(Operation.shop_id.in_(categories))
+        if quary_params.date_from:
+            o_query = o_query\
+                      .filter(Operation.date >= quary_params.date_from)
+        if quary_params.date_to:
+            o_query = o_query\
+                      .filter(Operation.date <= quary_params.date_to)
+        if quary_params.shops:
+            o_query = o_query.filter(Operation.shop_id.in_(quary_params.shops))
+        if quary_params.categories:
+            o_query = o_query.filter(Operation.shop_id.in_(quary_params.categories))
 
-        return operations_query.all()
+        return o_query.all()
 
     def get_report(
         self,
         current_user: Account,
-        *,
-        date_from: Optional[str],
-        date_to: Optional[str],
-        shops: Optional[List[int]],
-        categories: Optional[List[int]],
+        quary_params: QueryParams,
     ):
         operations_data = self.get_operations(
             current_user,
-            date_from=date_from,
-            date_to=date_to,
-            shops=shops,
-            categories=categories,
+            quary_params,
         )
 
         report = {
+            'time_points': set(),
             'buy': OperationsReport('Покупки'),
             'sale': OperationsReport('Продажи'),
         }
 
         for operation in operations_data:
             type = str(operation.type)
-            o_date = date.isoformat(operation.date)
-            path = [str(operation.shop), str(operation.category), str(operation.name)]
+            o_date = date.isoformat(operation.date.replace(day=1))
+            path = [
+                str(operation.shop.name),
+                str(operation.category.name),
+                str(operation.name),
+            ]
             total_sum = float(operation.amount * operation.price)
 
+            report['time_points'].add(o_date)
             report[type].add_row(path, o_date, total_sum)
-        json_data = json.dumps(
-            report,
-            indent=4,
-            cls=OperationsJSONEncoder,
-            ensure_ascii=False,
-        )
 
-        return json.loads(json_data)
+        report['buy'].set_zeros(report['time_points'])
+        report['sale'].set_zeros(report['time_points'])
+
+        return json.loads(
+            json.dumps(
+                report,
+                indent=4,
+                cls=OperationsJSONEncoder,
+                ensure_ascii=False,
+            )
+        )
