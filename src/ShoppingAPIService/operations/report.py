@@ -1,16 +1,23 @@
 from collections import Counter
+from datetime import date
 from json import JSONEncoder
 from operator import attrgetter
+from typing import Union
 
 
 class OperationsReport():
-    def __init__(self, key, fname='test') -> None:
+    def __init__(self, key: str):
         self.name = key
         self.amounts = Counter()
         self.total_amounts = 0
         self.children = {}
 
-    def add_row(self, path, date, total_sum):
+    def add_row(
+        self,
+        path: list,
+        date: Union[str, date],
+        total_sum: Union[float, int]
+    ):
         self.amounts[date] += total_sum
         self.total_amounts += total_sum
 
@@ -21,7 +28,7 @@ class OperationsReport():
                 child = self.children[key] = OperationsReport(key)
             child.add_row(path, date, total_sum)
 
-    def to_json(self):
+    def to_json(self) -> dict:
         json_dict = {
             'name': self.name,
             'amounts': str([
@@ -32,13 +39,13 @@ class OperationsReport():
         }
         if list(self.children.values()):
             json_dict['children'] = sorted(
-                list(self.children.values()), 
+                list(self.children.values()),
                 key=attrgetter('total_amounts'),
-                reverse=True
+                reverse=True,
             )
         return json_dict
 
-    def set_zeros(self, dates):
+    def set_zeros(self, dates: 'list[Union[str, date]]'):
         for date in dates:
             self.amounts.setdefault(date, 0)
         if self.children:

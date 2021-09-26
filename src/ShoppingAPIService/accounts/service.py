@@ -4,7 +4,6 @@ from sqlalchemy import select
 from sqlalchemy.exc import NoResultFound, IntegrityError
 
 from ..database import Session, get_session
-from ..config import Settings, get_settings
 from ..exseptions import EntiyDoesNotExistError, EntityConflictError
 from .auth import create_token
 from .models import Account
@@ -16,10 +15,8 @@ class AccountService:
     def __init__(
         self,
         session: Session = Depends(get_session),
-        settings: Settings = Depends(get_settings),
     ):
         self.session = session
-        self.settings = settings
 
     def create_account(self, account_singup: AccountSingUp) -> Account:
         account = Account(
@@ -44,7 +41,10 @@ class AccountService:
             token_type="bearer",
         )
 
-    def get_account_by_username(self, account_singin: AccountSingIn) -> Account:
+    def get_account_by_username(
+        self,
+        account_singin: AccountSingIn,
+    ) -> Account:
         try:
             account = self.session.execute(
                 select(Account)

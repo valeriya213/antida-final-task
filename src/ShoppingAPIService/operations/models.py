@@ -1,5 +1,4 @@
 from sqlalchemy import Column
-from sqlalchemy import UniqueConstraint
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql.schema import ForeignKey
 from sqlalchemy.sql.sqltypes import Float, Integer, String, Date

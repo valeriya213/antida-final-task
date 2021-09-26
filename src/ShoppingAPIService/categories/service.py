@@ -1,8 +1,8 @@
+from typing import List
 from fastapi import Depends
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError, NoResultFound
 
-from ..config import Settings, get_settings
 from ..database import Session, get_session
 from ..accounts.models import Account
 from ..exseptions import EntityConflictError, EntiyDoesNotExistError
@@ -14,10 +14,8 @@ class CategoryServices():
     def __init__(
         self,
         session: Session = Depends(get_session),
-        settings: Settings = Depends(get_settings),
     ):
         self.session = session
-        self.settings = settings
 
     def add_new_category(
         self,
@@ -52,7 +50,7 @@ class CategoryServices():
         self.session.commit()
         return category
 
-    def get_categories(self, current_user: Account):
+    def get_categories(self, current_user: Account) -> List[Category]:
         return self.session.execute(
             select(Category)
             .where(Category.account_id == current_user.id)

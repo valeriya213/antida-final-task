@@ -1,8 +1,8 @@
+from typing import List
 from fastapi import Depends
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError, NoResultFound
 
-from ..config import Settings, get_settings
 from ..database import Session, get_session
 from ..accounts.models import Account
 from ..exseptions import EntityConflictError, EntiyDoesNotExistError
@@ -14,10 +14,8 @@ class ShopsServices():
     def __init__(
         self,
         session: Session = Depends(get_session),
-        settings: Settings = Depends(get_settings),
     ):
         self.session = session
-        self.settings = settings
 
     def add_new_shop(self, new_shop: ShopName, current_user: Account) -> Shop:
         shop = Shop(
@@ -44,7 +42,7 @@ class ShopsServices():
         self.session.commit()
         return shop
 
-    def get_shops(self, current_user: Account):
+    def get_shops(self, current_user: Account) -> List[Shop]:
         return self.session.execute(
             select(Shop)
             .where(Shop.account_id == current_user.id)

@@ -4,13 +4,13 @@ from fastapi import HTTPException
 from fastapi import status
 from fastapi.security import OAuth2PasswordBearer
 from jose import jwt
-from jose.exceptions import ExpiredSignatureError
+from jose.exceptions import ExpiredSignatureError, JWTError
 
 from ..config import settings
 from .schemas import Account
 
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl='singin')
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl='signin')
 
 
 def create_token(account: Account) -> str:
@@ -25,7 +25,7 @@ def create_token(account: Account) -> str:
                 'id': str(account.id),
                 'username': account.username,
             }},
-        settings.secret_key,
+        'secret',
         algorithm='HS256',
     )
 
@@ -39,10 +39,12 @@ def get_current_user(token: str = Depends(oauth2_scheme)) -> Account:
     try:
         token_data = jwt.decode(
             token,
-            settings.secret_key,
+            'secret',
             algorithms=['HS256'],
         )
     except ExpiredSignatureError:
+        raise credentials_exeption
+    except JWTError:
         raise credentials_exeption
 
     if 'account' not in token_data:

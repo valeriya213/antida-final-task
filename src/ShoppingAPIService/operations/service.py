@@ -5,15 +5,14 @@ from sqlalchemy import select
 from sqlalchemy.orm import Query
 from typing import List
 
-from ..config import Settings, get_settings
 from ..database import Session, get_session
-from ..accounts.models import Account
-from ..shops.models import Shop
-from ..categories.models import Category
 from ..exseptions import EntiyUnprocessableError
+from ..accounts.models import Account
+from ..categories.models import Category
+from ..shops.models import Shop
 from .models import Operation
-from .schemas import OperationRequest
 from .report import OperationsReport, OperationsJSONEncoder
+from .schemas import OperationRequest
 from .queryparams import QueryParams
 
 
@@ -21,10 +20,8 @@ class OperationsServices():
     def __init__(
         self,
         session: Session = Depends(get_session),
-        settings: Settings = Depends(get_settings),
     ):
         self.session = session
-        self.settings = settings
 
     def add_operation(
         self,
@@ -33,7 +30,7 @@ class OperationsServices():
     ) -> Operation:
         if not self._validate_operation_data(
             new_operation,
-            current_user
+            current_user,
         ):
             raise EntiyUnprocessableError
 
@@ -113,19 +110,56 @@ class OperationsServices():
                       .filter(Operation.shop_id.in_(quary_params.shops))
         if quary_params.categories:
             o_query = o_query\
-                      .filter(Operation.shop_id.in_(quary_params.categories))
+                      .filter(Operation.category_id.in_(quary_params.categories))
         return o_query
 
     def get_report(
         self,
         current_user: Account,
         quary_params: QueryParams,
-    ):
+    ) -> dict:
         operations_data = self._get_operations(
             current_user,
             quary_params,
         ).order_by(Operation.date).all()
 
+        report = self._get_report(operations_data)
+        self._set_correct_dates_in_report(quary_params, report)
+
+        return json.loads(
+            json.dumps(
+                report,
+                indent=4,
+                cls=OperationsJSONEncoder,
+                ensure_ascii=False,
+            )
+        )
+
+    def _set_correct_dates_in_report(
+        self,
+        quary_params: QueryParams,
+        report: dict,
+    ):
+        min_date = quary_params.date_from or \
+            date.fromisoformat(min(report['time_points']))
+        max_date = quary_params.date_to or \
+            date.fromisoformat(max(report['time_points']))
+
+        while min_date <= max_date:
+            report['time_points'].add(min_date.isoformat())
+            next_month = min_date.month + 1
+            min_date = date(
+                min_date.year + (next_month-1) // 12,
+                (next_month - 1) % 12 + 1,
+                1,
+            )
+        self._set_zeros_for_new_dates(report)
+
+    def _set_zeros_for_new_dates(self, report: dict):
+        report['buy'].set_zeros(report['time_points'])
+        report['sale'].set_zeros(report['time_points'])
+
+    def _get_report(self, operations_data) -> dict:
         report = {
             'time_points': set(),
             'buy': OperationsReport('Покупки'),
@@ -144,15 +178,4 @@ class OperationsServices():
 
             report['time_points'].add(o_date)
             report[o_type].add_row(path, o_date, total_sum)
-
-        report['buy'].set_zeros(report['time_points'])
-        report['sale'].set_zeros(report['time_points'])
-
-        return json.loads(
-            json.dumps(
-                report,
-                indent=4,
-                cls=OperationsJSONEncoder,
-                ensure_ascii=False,
-            )
-        )
+        return report

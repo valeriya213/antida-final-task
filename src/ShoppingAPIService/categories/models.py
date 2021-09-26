@@ -16,7 +16,7 @@ class Category(Base):
                         nullable=False)
 
     account = relationship('Account', back_populates='category')
-    operation = relationship('Operation', back_populates='category')
+    operation = relationship('Operation', cascade="all,delete", back_populates='category')
     __table_args__ = (
         UniqueConstraint('name', 'account_id',
                          name='unique_category_name_for_account'),

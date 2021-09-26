@@ -17,7 +17,6 @@ def enable_foreign_keys(dbapi_connection, connection_record):
 engine = create_engine(
     settings.database_url,
     future=True,
-    echo=True,
     connect_args={'check_same_thread': False}
 )
 

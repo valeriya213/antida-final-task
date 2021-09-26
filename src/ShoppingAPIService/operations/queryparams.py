@@ -24,7 +24,7 @@ class QueryParams:
         try:
             self._date_from = date.fromisoformat(date_from)
         except ValueError:
-            raise HTTPException(status.HTTP_400_BAD_REQUEST)
+            raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY)
 
     @property
     def date_to(self):
@@ -39,7 +39,7 @@ class QueryParams:
         try:
             self._date_to = date.fromisoformat(date_to)
         except ValueError:
-            raise HTTPException(status.HTTP_400_BAD_REQUEST)
+            raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY)
 
     @property
     def shops(self):
@@ -54,7 +54,7 @@ class QueryParams:
             int(x) for x in shops.split(',') if x.isdigit()
         ]
         if shops and not self._shops:
-            raise HTTPException(status.HTTP_400_BAD_REQUEST)
+            raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY)
 
     @property
     def categories(self):
@@ -69,10 +69,10 @@ class QueryParams:
             int(x) for x in categories.split(',') if x.isdigit()
         ]
         if categories and not self._categories:
-            raise HTTPException(status.HTTP_400_BAD_REQUEST)
+            raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY)
 
 
-def get_query_params(request: Request):
+def get_query_params(request: Request) -> QueryParams:
     return QueryParams(
         date_from=request.query_params.get('date_from'),
         date_to=request.query_params.get('date_to'),

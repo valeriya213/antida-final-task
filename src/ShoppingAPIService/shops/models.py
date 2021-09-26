@@ -16,7 +16,7 @@ class Shop(Base):
                         nullable=False)
 
     account = relationship('Account', back_populates='shop')
-    operation = relationship('Operation', back_populates='shop')
+    operation = relationship('Operation', cascade="all,delete", back_populates='shop')
     __table_args__ = (
         UniqueConstraint('name', 'account_id',
                          name='unique_shop_name_for_account'),

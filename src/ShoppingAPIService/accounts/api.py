@@ -16,7 +16,12 @@ def initialize_app(app: FastAPI):
     app.include_router(router)
 
 
-@router.post('/singup', response_model=Token)
+@router.post(
+    '/signup',
+    response_model=Token,
+    status_code=status.HTTP_201_CREATED,
+    tags=['Accounts'],
+)
 def create_account(
     account_create: AccountSingUp,
     account_service: AccountService = Depends(),
@@ -28,7 +33,7 @@ def create_account(
     return account_service.create_token_for_account(account)
 
 
-@router.post('/singin', response_model=Token)
+@router.post('/signin', response_model=Token, tags=['Accounts'])
 def authenticate_account(
     account_service: AccountService = Depends(),
     credentials: OAuth2PasswordRequestForm = Depends(),
