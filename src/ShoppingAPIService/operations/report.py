@@ -1,5 +1,6 @@
 from collections import Counter
 from json import JSONEncoder
+from operator import attrgetter
 
 
 class OperationsReport():
@@ -20,7 +21,6 @@ class OperationsReport():
                 child = self.children[key] = OperationsReport(key)
             child.add_row(path, date, total_sum)
 
-    # f"{[round(x, 2) for x in self.amounts.values()]}"
     def to_json(self):
         json_dict = {
             'name': self.name,
@@ -31,7 +31,11 @@ class OperationsReport():
             'total_amounts': round(self.total_amounts, 2),
         }
         if list(self.children.values()):
-            json_dict['children'] = list(self.children.values())
+            json_dict['children'] = sorted(
+                list(self.children.values()), 
+                key=attrgetter('total_amounts'),
+                reverse=True
+            )
         return json_dict
 
     def set_zeros(self, dates):

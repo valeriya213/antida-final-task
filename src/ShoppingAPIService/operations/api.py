@@ -1,4 +1,3 @@
-from datetime import date
 from typing import List
 from fastapi import APIRouter
 from fastapi import Depends
@@ -27,19 +26,12 @@ def add_operation(
     operation_services: OperationsServices = Depends(),
 ):
     try:
-        operation = operation_services.add_operation(new_operation)
+        return operation_services.add_operation(
+            new_operation,
+            current_account,
+        )
     except EntiyUnprocessableError:
         raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY)
-    return Operation(
-        id=operation.id,
-        type=operation.type,
-        date=date.isoformat(operation.date),
-        shop_id=operation.shop_id,
-        category_id=operation.category_id,
-        name=operation.name,
-        price=operation.price,
-        amount=operation.amount,
-    )
 
 
 @router.get('', response_model=List[Operation])
@@ -48,23 +40,10 @@ def get_operations_for_period(
     current_account: Account = Depends(get_current_user),
     operation_services: OperationsServices = Depends(),
 ):
-    operations = operation_services.get_operations(
+    return operation_services.get_operations(
         current_account,
         query_params,
     )
-    return [
-        Operation(
-            id=o.id,
-            type=o.type,
-            date=date.isoformat(o.date),
-            shop_id=o.shop_id,
-            category_id=o.category_id,
-            name=o.name,
-            price=o.price,
-            amount=o.amount,
-        )
-        for o in operations
-    ]
 
 
 @router.get('/report')
